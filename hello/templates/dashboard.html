@@ -1,0 +1,227 @@
+{% extends 'base.html' %} {% block title %} Dashboard - Teacher
+Portal{%endblock%} {% block extra_css %}
+<style>
+  /* Welcome Message */
+  .welcome-message {
+    font-size: 28px;
+    font-weight: 400;
+    color: #333;
+    margin-bottom: 30px;
+  }
+
+  /* Quick Actions Section */
+  .quick-actions {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 40px;
+  }
+
+  .btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: opacity 0.2s;
+  }
+
+  .btn:hover {
+    opacity: 0.9;
+  }
+
+  .btn-primary {
+    background-color: #3b5998;
+    color: white;
+  }
+
+  .btn-secondary {
+    background-color: #5a6c7d;
+    color: white;
+  }
+
+  .btn-success {
+    background-color: #27ae60;
+    color: white;
+  }
+
+  /* Unit Outlines Cards */
+  .unit-cards {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px;
+  }
+
+  .unit-card {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    min-width: 300px;
+    flex: 1;
+    max-width: 400px;
+  }
+
+  .unit-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  .unit-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .status-badge {
+    padding: 4px 12px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .badge-draft {
+    background-color: #27ae60;
+    color: white;
+  }
+
+  .badge-published {
+    background-color: #3b5998;
+    color: white;
+  }
+
+  .unit-card-info {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 15px;
+  }
+
+  .unit-card-info p {
+    margin-bottom: 5px;
+  }
+
+  .btn-card {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+
+  /* Upcoming Deadlines Table */
+  .deadlines-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    border: 1px solid #ddd;
+  }
+
+  .deadlines-table th {
+    background-color: #5a6c7d;
+    color: white;
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  .deadlines-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+  }
+
+  .deadlines-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .status-pending {
+    color: #e67e22;
+  }
+</style>
+{% endblock %} {% block content %}
+<!-- Welcome Message -->
+<!-- TODO: Replace hardcoded name with dynamic user data -->
+<!-- Example: <h1 class="welcome-message">Welcome back, {{ user.first_name }}</h1> -->
+<h1 class="welcome-message">Welcome back, Mr Chubb</h1>
+
+<!-- Quick Actions Section -->
+<section class="mb-30">
+  <h2 class="section-title">Quick Actions</h2>
+  <div class="quick-actions">
+    {# TODO: Update href attributes to use Django url template tags #}
+    <a href="#" class="btn btn-primary">+ New Unit Outline</a>
+    <a href="#" class="btn btn-secondary">Clone Existing</a>
+    <a href="#" class="btn btn-secondary">View Calendar</a>
+  </div>
+</section>
+
+<!-- Recent Unit Outlines Section -->
+<section class="mb-30">
+  <h2 class="section-title">Recent Unit Outlines</h2>
+  <div class="unit-cards">
+    <!-- Unit Card 1 - DRAFT -->
+    <div class="unit-card">
+      <div class="unit-card-header">
+        <span class="unit-card-title">Digital Solutions - Year 12</span>
+        <span class="status-badge badge-draft">DRAFT</span>
+      </div>
+      <div class="unit-card-info">
+        <p>Unit Code: 12001</p>
+        <p>Last Modified: 15 Feb 2026</p>
+        <p>Due Dates: items pending</p>
+      </div>
+      <a href="#" class="btn btn-success btn-card">Continue Editing</a>
+    </div>
+
+    <!-- Unit Card 2 - PUBLISHED -->
+    <div class="unit-card">
+      <div class="unit-card-header">
+        <span class="unit-card-title">Robotics - Year 12</span>
+        <span class="status-badge badge-published">PUBLISHED</span>
+      </div>
+      <div class="unit-card-info">
+        <p>Unit Code: 12003</p>
+        <p>Last Modified: 10 Feb 2026</p>
+        <p>Status: Live for students</p>
+        <p>Due Dates: 20 Feb 2026</p>
+      </div>
+      <a href="#" class="btn btn-secondary btn-card">View / Edit</a>
+    </div>
+
+    <!-- END: Hardcoded unit cards -->
+  </div>
+</section>
+
+<!-- Upcoming Deadlines Section -->
+<section class="mb-30">
+  <h2 class="section-title">Upcoming Deadlines</h2>
+  <table class="deadlines-table">
+    <thead>
+      <tr>
+        <th>Assessment Item</th>
+        <th>Unit</th>
+        <th>Due Date</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Design Document</td>
+        <td>Digital Solutions Y12</td>
+        <td>20 Feb 2026</td>
+        <td class="status-pending">Outline Pending</td>
+      </tr>
+      <tr>
+        <td>Build 1</td>
+        <td>Digital Solutions Y12</td>
+        <td>20 Mar 2026</td>
+        <td class="status-pending">Outline Pending</td>
+      </tr>
+
+      <!-- END: Hardcoded deadline rows -->
+    </tbody>
+  </table>
+</section>
+{% endblock %}
