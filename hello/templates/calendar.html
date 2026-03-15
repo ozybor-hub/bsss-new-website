@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Calendar - Teacher Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .calendar-header h1 { font-size: 20px; }
+    .calendar-nav { display: flex; align-items: center; gap: 12px; }
+    .month-year { font-size: 16px; font-weight: bold; min-width: 160px; text-align: center; }
+    .calendar-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .calendar-grid th { background: #eee; padding: 8px; text-align: center; font-size: 13px; border: 1px solid #ccc; }
+    .calendar-grid td { border: 1px solid #ccc; padding: 6px; height: 80px; vertical-align: top; font-size: 12px; }
+    .day-number { font-weight: bold; margin-bottom: 3px; }
+    .other-month { background: #f9f9f9; color: #bbb; }
+    .other-month .day-number { color: #bbb; }
+    .today { background: #e8f0fe; }
+    .calendar-event { padding: 1px 4px; font-size: 10px; margin-bottom: 2px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .event-deadline { background: #c0392b; }
+    .event-start { background: #2c3e50; }
+    .event-term { background: #27ae60; }
+    .calendar-legend { display: flex; gap: 16px; margin-top: 12px; font-size: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 4px; }
+    .legend-dot { width: 10px; height: 10px; display: inline-block; }
+    .legend-deadline { background: #c0392b; }
+    .legend-start { background: #2c3e50; }
+    .legend-term { background: #27ae60; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calendar-header">
+    <h1>Calendar</h1>
+    <div class="calendar-nav">
+        <button class="btn">&#9664; Previous</button>
+        <span class="month-year">{{ month_name }} {{ year }}</span>
+        <button class="btn">Next &#9654;</button>
+    </div>
+</div>
+
+<table class="calendar-grid">
+    <thead>
+        <tr>
+            <th>Mon</th>
+            <th>Tue</th>
+            <th>Wed</th>
+            <th>Thu</th>
+            <th>Fri</th>
+            <th>Sat</th>
+            <th>Sun</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for week in calendar_weeks %}
+        <tr>
+            {% for day in week %}
+            <td class="{% if day.other_month %}other-month{% endif %}{% if day.is_today %} today{% endif %}">
+                <div class="day-number">{{ day.number }}</div>
+                {% for event in day.events %}
+                <div class="calendar-event event-{{ event.type }}">{{ event.label }}</div>
+                {% endfor %}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="calendar-legend">
+    <div class="legend-item"><span class="legend-dot legend-deadline"></span> Due Date</div>
+    <div class="legend-item"><span class="legend-dot legend-start"></span> Start Date</div>
+    <div class="legend-item"><span class="legend-dot legend-term"></span> Term Start/End</div>
+</div>
+{% endblock %}

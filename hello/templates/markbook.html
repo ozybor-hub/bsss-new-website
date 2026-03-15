@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+
+{% block title %}Markbook - Teacher Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .page-header h1 { font-size: 20px; }
+    .unit-info { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 30px; margin-bottom: 16px; font-size: 13px; }
+    .unit-info .label { font-weight: bold; }
+    .stats-cards { display: flex; gap: 12px; margin-bottom: 20px; }
+    .stat-card { flex: 1; border: 1px solid #ccc; padding: 12px; text-align: center; }
+    .stat-value { font-size: 24px; font-weight: bold; }
+    .stat-label { font-size: 12px; color: #666; }
+    .marks-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .marks-table th { text-align: center; font-size: 12px; }
+    .marks-table th:first-child, .marks-table th:nth-child(2) { text-align: left; }
+    .marks-table td { text-align: center; }
+    .marks-table td:first-child, .marks-table td:nth-child(2) { text-align: left; }
+    .editing-row { background: #ffe; }
+    .mark-input { width: 50px; padding: 3px 5px; border: 1px solid #ccc; text-align: center; font-size: 13px; }
+    .grade-badge { display: inline-block; padding: 2px 8px; font-size: 11px; font-weight: bold; border: 1px solid #999; }
+    .grade-a { background: #d4edda; }
+    .grade-b { background: #cce5ff; }
+    .grade-c { background: #fff3cd; }
+    .grade-d { background: #f8d7da; }
+    .grade-f { background: #f5c6cb; }
+    .grade-pending { background: #e2e3e5; }
+    .auto-calc-note { font-size: 11px; color: #888; font-style: italic; margin-left: 6px; }
+    .quick-edit { border: 1px solid #ccc; padding: 16px; margin-top: 20px; }
+    /* Student search/filter */
+    .search-box { margin-bottom: 12px; }
+    .search-box input { width: 280px; padding: 7px 12px; border: 1px solid #ccc; font-size: 13px; }
+    .search-box label { font-size: 13px; font-weight: bold; margin-right: 8px; }
+    .no-results { text-align: center; padding: 16px; color: #888; font-style: italic; display: none; }
+    .quick-edit h3 { font-size: 16px; margin-bottom: 12px; }
+    .quick-edit-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 12px; font-weight: bold; }
+    .form-group select, .form-group input, .form-group textarea { padding: 6px 10px; border: 1px solid #ccc; font-size: 13px; }
+    .form-group textarea { height: 60px; resize: vertical; }
+    .form-group-full { grid-column: 1 / -1; }
+    .mark-entry { display: flex; align-items: center; gap: 6px; }
+    .mark-entry input { width: 70px; padding: 6px 10px; border: 1px solid #ccc; font-size: 13px; }
+    .mark-entry span { font-size: 13px; color: #666; }
+    .quick-edit-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ unit.title }} - {{ unit.year_level }}</h1>
+    <button class="btn">Print Markbook</button>
+</div>
+
+<div class="unit-info">
+    <div><span class="label">Unit Code:</span> {{ unit.code }}</div>
+    <div><span class="label">Semester:</span> {{ unit.semester }}</div>
+    <div><span class="label">Teacher:</span> {{ unit.teacher }}</div>
+    <div><span class="label">Last Updated:</span> {{ unit.last_updated }}</div>
+    <div><span class="label">Total Students:</span> {{ stats.total_students }}</div>
+</div>
+
+<div class="stats-cards">
+    <div class="stat-card"><div class="stat-value">{{ stats.total_students }}</div><div class="stat-label">Total Students</div></div>
+    <div class="stat-card"><div class="stat-value">{{ stats.completed_assessments }}</div><div class="stat-label">Completed Assessments</div></div>
+    <div class="stat-card"><div class="stat-value">{{ stats.pending_marks }}</div><div class="stat-label">Pending Marks</div></div>
+    <div class="stat-card"><div class="stat-value">{{ stats.class_average }}%</div><div class="stat-label">Class Average</div></div>
+</div>
+
+<div class="marks-header">
+    <h2 class="section-title" style="border-bottom:none; margin-bottom:0;">Student Marks Overview</h2>
+    <button class="btn btn-primary">Save Changes</button>
+</div>
+
+<!-- Student search/filter: lets teachers quickly find students by name or ID -->
+<div class="search-box">
+    <label for="student-search">Search Students:</label>
+    <input type="text" id="student-search" placeholder="Type a name or student ID..." oninput="filterStudents()">
+</div>
+
+<table class="marks-table" id="marks-table">
+    <thead>
+        <tr>
+            <th style="width:30px;"></th>
+            <th>Student Name</th>
+            <th>Student ID</th>
+            <th>Design Document (20%)</th>
+            <th>Build 1 (20%)</th>
+            <th>Build 2 (30%)</th>
+            <th>Reflection (20%)</th>
+            <th>Final Grade <span class="auto-calc-note">⚙ auto</span></th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for student in students %}
+        <tr{% if student.editing %} class="editing-row"{% endif %}>
+            <td><input type="checkbox"></td>
+            <td>{{ student.name }}</td>
+            <td>{{ student.student_id }}</td>
+            {% if student.editing %}
+            <td><input type="text" class="mark-input" value="{{ student.design_doc }}"></td>
+            <td><input type="text" class="mark-input" value="{{ student.build1 }}"></td>
+            <td><input type="text" class="mark-input" value="{{ student.build2 }}"></td>
+            <td><input type="text" class="mark-input" value="{{ student.reflection }}"></td>
+            {% else %}
+            <td>{% if student.design_doc %}{{ student.design_doc }}/20{% else %}-{% endif %}</td>
+            <td>{% if student.build1 %}{{ student.build1 }}/20{% else %}-{% endif %}</td>
+            <td>{% if student.build2 %}{{ student.build2 }}/30{% else %}-{% endif %}</td>
+            <td>{% if student.reflection %}{{ student.reflection }}/20{% else %}-{% endif %}</td>
+            {% endif %}
+            <td>
+                {% if student.grade_letter %}
+                <span class="grade-badge grade-{{ student.grade_class }}">{{ student.grade_letter }} ({{ student.grade_pct }}%)</span>
+                {% else %}
+                <span class="grade-badge grade-pending">Pending</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if student.editing %}
+                <button class="btn">Save</button>
+                <button class="btn">Cancel</button>
+                {% else %}
+                <button class="btn" onclick="editStudent('{{ student.student_id }}')">Edit</button>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<div class="no-results" id="no-results">No students match your search.</div>
+
+{% if messages %}
+<div style="margin-bottom: 12px;">
+    {% for message in messages %}
+    <div style="padding: 8px 14px; margin-bottom: 6px; border: 1px solid {% if message.tags == 'success' %}#28a745{% else %}#dc3545{% endif %}; background: {% if message.tags == 'success' %}#d4edda{% else %}#f8d7da{% endif %}; font-size: 13px;">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="quick-edit">
+    <h3>Quick Edit Section</h3>
+    <form method="post" action="{% url 'teacher_portal:update_grade' %}">
+        {% csrf_token %}
+        <div class="quick-edit-form">
+            <div class="form-group">
+                <label for="student_id">Select Student:</label>
+                <select name="student_id" id="student_id" required>
+                    {% for student in students %}
+                    <option value="{{ student.student_id }}">{{ student.name }} ({{ student.student_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="assessment">Assessment Item:</label>
+                <select name="assessment" id="assessment" required onchange="updateMaxMark()">
+                    <option value="design_doc">Design Document (20%)</option>
+                    <option value="build1">Build 1 (20%)</option>
+                    <option value="build2">Build 2 (30%)</option>
+                    <option value="reflection">Reflection (20%)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="mark">Mark:</label>
+                <div class="mark-entry">
+                    <input type="number" name="mark" id="mark" min="0" max="20" placeholder="e.g. 18" required>
+                    <span id="max-mark-label">Out of: 20</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="comments">Comments (Optional):</label>
+                <textarea name="comments" id="comments" placeholder="Add feedback for student..."></textarea>
+            </div>
+        </div>
+        <div class="quick-edit-actions">
+            <button type="reset" class="btn">Clear</button>
+            <button type="submit" class="btn btn-primary">Save Mark</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterStudents() {
+    var query = document.getElementById('student-search').value.toLowerCase();
+    var rows = document.querySelectorAll('#marks-table tbody tr');
+    var visibleCount = 0;
+
+    rows.forEach(function(row) {
+        var name = row.cells[1].textContent.toLowerCase();
+        var id   = row.cells[2].textContent.toLowerCase();
+        var match = name.indexOf(query) !== -1 || id.indexOf(query) !== -1;
+        row.style.display = match ? '' : 'none';
+        if (match) visibleCount++;
+    });
+
+    document.getElementById('no-results').style.display = visibleCount === 0 ? 'block' : 'none';
+}
+
+function editStudent(studentId) {
+    // Set the student dropdown to the selected student
+    var studentSelect = document.getElementById('student_id');
+    for (var i = 0; i < studentSelect.options.length; i++) {
+        if (studentSelect.options[i].value === studentId) {
+            studentSelect.selectedIndex = i;
+            break;
+        }
+    }
+
+    // Scroll smoothly to the Quick Edit section
+    document.querySelector('.quick-edit').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Focus on the assessment dropdown after a short delay (to let scroll finish)
+    setTimeout(function() {
+        document.getElementById('assessment').focus();
+    }, 400);
+}
+
+var maxMarks = { design_doc: 20, build1: 20, build2: 30, reflection: 20 };
+
+function updateMaxMark() {
+    var sel = document.getElementById('assessment').value;
+    var max = maxMarks[sel] || 20;
+    document.getElementById('mark').max = max;
+    document.getElementById('max-mark-label').textContent = 'Out of: ' + max;
+}
+</script>
+{% endblock %}

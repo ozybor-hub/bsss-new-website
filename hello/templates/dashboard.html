@@ -1,227 +1,108 @@
-{% extends 'base.html' %} {% block title %} Dashboard - Teacher
-Portal{%endblock%} {% block extra_css %}
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Teacher Portal{% endblock %}
+
+{% block extra_css %}
 <style>
-  /* Welcome Message */
-  .welcome-message {
-    font-size: 28px;
-    font-weight: 400;
-    color: #333;
-    margin-bottom: 30px;
-  }
-
-  /* Quick Actions Section */
-  .quick-actions {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 40px;
-  }
-
-  .btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    transition: opacity 0.2s;
-  }
-
-  .btn:hover {
-    opacity: 0.9;
-  }
-
-  .btn-primary {
-    background-color: #3b5998;
-    color: white;
-  }
-
-  .btn-secondary {
-    background-color: #5a6c7d;
-    color: white;
-  }
-
-  .btn-success {
-    background-color: #27ae60;
-    color: white;
-  }
-
-  /* Unit Outlines Cards */
-  .unit-cards {
-    display: flex;
-    gap: 30px;
-    margin-bottom: 40px;
-  }
-
-  .unit-card {
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 20px;
-    min-width: 300px;
-    flex: 1;
-    max-width: 400px;
-  }
-
-  .unit-card-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-  }
-
-  .unit-card-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-  }
-
-  .status-badge {
-    padding: 4px 12px;
-    border-radius: 3px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-
-  .badge-draft {
-    background-color: #27ae60;
-    color: white;
-  }
-
-  .badge-published {
-    background-color: #3b5998;
-    color: white;
-  }
-
-  .unit-card-info {
-    font-size: 13px;
-    color: #666;
-    margin-bottom: 15px;
-  }
-
-  .unit-card-info p {
-    margin-bottom: 5px;
-  }
-
-  .btn-card {
-    padding: 10px 20px;
-    font-size: 13px;
-  }
-
-  /* Upcoming Deadlines Table */
-  .deadlines-table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: white;
-    border: 1px solid #ddd;
-  }
-
-  .deadlines-table th {
-    background-color: #5a6c7d;
-    color: white;
-    padding: 12px 15px;
-    text-align: left;
-    font-weight: 500;
-    font-size: 14px;
-  }
-
-  .deadlines-table td {
-    padding: 12px 15px;
-    border-bottom: 1px solid #eee;
-    font-size: 14px;
-  }
-
-  .deadlines-table tr:last-child td {
-    border-bottom: none;
-  }
-
-  .status-pending {
-    color: #e67e22;
-  }
+    .welcome { font-size: 22px; margin-bottom: 20px; }
+    .quick-actions { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+    .unit-cards { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+    .unit-card { border: 1px solid #ccc; padding: 14px; min-width: 260px; flex: 1; max-width: 380px; }
+    .unit-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .unit-card-title { font-weight: bold; font-size: 14px; }
+    .status-badge { font-size: 11px; padding: 2px 8px; border: 1px solid #999; text-transform: uppercase; }
+    .badge-draft { background: #d4edda; }
+    .badge-published { background: #cce5ff; }
+    .unit-card-info { font-size: 12px; color: #555; margin-bottom: 10px; }
+    .unit-card-info p { margin-bottom: 3px; }
+    .clone-select { padding: 6px 10px; border: 1px solid #ccc; font-size: 13px; }
+    .messages-list { list-style: none; margin-bottom: 16px; }
+    .messages-list li { padding: 8px 12px; border: 1px solid #ccc; margin-bottom: 4px; font-size: 13px; }
+    .messages-list .success { background: #d4edda; }
+    .messages-list .error { background: #f8d7da; }
 </style>
-{% endblock %} {% block content %}
-<!-- Welcome Message -->
-<!-- TODO: Replace hardcoded name with dynamic user data -->
-<!-- Example: <h1 class="welcome-message">Welcome back, {{ user.first_name }}</h1> -->
-<h1 class="welcome-message">Welcome back, Mr Chubb</h1>
+{% endblock %}
 
-<!-- Quick Actions Section -->
-<section class="mb-30">
-  <h2 class="section-title">Quick Actions</h2>
-  <div class="quick-actions">
-    {# TODO: Update href attributes to use Django url template tags #}
-    <a href="#" class="btn btn-primary">+ New Unit Outline</a>
-    <a href="#" class="btn btn-secondary">Clone Existing</a>
-    <a href="#" class="btn btn-secondary">View Calendar</a>
-  </div>
+{% block content %}
+{% if messages %}
+<ul class="messages-list">
+    {% for message in messages %}
+    <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<h1 class="welcome">Welcome back, {{ user_name }}</h1>
+
+<section class="mb-20">
+    <h2 class="section-title">Quick Actions</h2>
+    <div class="quick-actions">
+        <a href="{% url 'teacher_portal:unit_outline' %}" class="btn btn-primary">+ New Unit Outline</a>
+        <form method="post" action="{% url 'teacher_portal:clone_unit_action' %}" style="display:flex; gap:8px; align-items:center;">
+            {% csrf_token %}
+            <select name="unit_id" class="clone-select">
+                {% for unit in recent_units %}
+                <option value="{{ unit.id }}">{{ unit.name }} ({{ unit.code }})</option>
+                {% empty %}
+                <option value="" disabled selected>No units available</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn"{% if not recent_units %} disabled{% endif %}>Clone Selected</button>
+        </form>
+        <a href="{% url 'teacher_portal:calendar' %}" class="btn">View Calendar</a>
+    </div>
 </section>
 
-<!-- Recent Unit Outlines Section -->
-<section class="mb-30">
-  <h2 class="section-title">Recent Unit Outlines</h2>
-  <div class="unit-cards">
-    <!-- Unit Card 1 - DRAFT -->
-    <div class="unit-card">
-      <div class="unit-card-header">
-        <span class="unit-card-title">Digital Solutions - Year 12</span>
-        <span class="status-badge badge-draft">DRAFT</span>
-      </div>
-      <div class="unit-card-info">
-        <p>Unit Code: 12001</p>
-        <p>Last Modified: 15 Feb 2026</p>
-        <p>Due Dates: items pending</p>
-      </div>
-      <a href="#" class="btn btn-success btn-card">Continue Editing</a>
+<section class="mb-20">
+    <h2 class="section-title">Recent Unit Outlines</h2>
+    <div class="unit-cards">
+        {% for unit in recent_units %}
+        <div class="unit-card">
+            <div class="unit-card-header">
+                <span class="unit-card-title">{{ unit.name }}</span>
+                <span class="status-badge badge-{{ unit.status|lower }}">{{ unit.status }}</span>
+            </div>
+            <div class="unit-card-info">
+                <p>Unit Code: {{ unit.code }}</p>
+                <p>Last Modified: {{ unit.last_modified|date:"d M Y" }}</p>
+                {% if unit.live_status %}<p>Status: {{ unit.live_status }}</p>{% endif %}
+                <p>Due Dates: {{ unit.due_dates_info }}</p>
+            </div>
+            {% if unit.status == 'DRAFT' %}
+            <a href="{% url 'teacher_portal:unit_outline' %}" class="btn btn-primary">Continue Editing</a>
+            {% else %}
+            <a href="{% url 'teacher_portal:unit_outline' %}" class="btn">View / Edit</a>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p style="color:#888; font-style:italic;">No unit outlines yet.</p>
+        {% endfor %}
     </div>
-
-    <!-- Unit Card 2 - PUBLISHED -->
-    <div class="unit-card">
-      <div class="unit-card-header">
-        <span class="unit-card-title">Robotics - Year 12</span>
-        <span class="status-badge badge-published">PUBLISHED</span>
-      </div>
-      <div class="unit-card-info">
-        <p>Unit Code: 12003</p>
-        <p>Last Modified: 10 Feb 2026</p>
-        <p>Status: Live for students</p>
-        <p>Due Dates: 20 Feb 2026</p>
-      </div>
-      <a href="#" class="btn btn-secondary btn-card">View / Edit</a>
-    </div>
-
-    <!-- END: Hardcoded unit cards -->
-  </div>
 </section>
 
-<!-- Upcoming Deadlines Section -->
-<section class="mb-30">
-  <h2 class="section-title">Upcoming Deadlines</h2>
-  <table class="deadlines-table">
-    <thead>
-      <tr>
-        <th>Assessment Item</th>
-        <th>Unit</th>
-        <th>Due Date</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Design Document</td>
-        <td>Digital Solutions Y12</td>
-        <td>20 Feb 2026</td>
-        <td class="status-pending">Outline Pending</td>
-      </tr>
-      <tr>
-        <td>Build 1</td>
-        <td>Digital Solutions Y12</td>
-        <td>20 Mar 2026</td>
-        <td class="status-pending">Outline Pending</td>
-      </tr>
-
-      <!-- END: Hardcoded deadline rows -->
-    </tbody>
-  </table>
+<section class="mb-20">
+    <h2 class="section-title">Upcoming Deadlines</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Assessment Item</th>
+                <th>Unit</th>
+                <th>Due Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for deadline in upcoming_deadlines %}
+            <tr>
+                <td>{{ deadline.assessment_item }}</td>
+                <td>{{ deadline.unit }}</td>
+                <td>{{ deadline.due_date|date:"d M Y" }}</td>
+                <td>{{ deadline.status }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="color:#888;">No upcoming deadlines.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </section>
 {% endblock %}
